@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.sqlite
+
+# Replit
+.replit.nix
+replit.nix
+.config/
+.upm/
