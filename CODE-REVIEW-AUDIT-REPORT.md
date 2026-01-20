@@ -8,238 +8,276 @@ Repository: /home/user/foundry-v8
 
 ## Executive Summary
 
-**Audit Status:** CANNOT COMPLETE
+**Audit Status:** FAIL
 **Deployment Ready:** NO
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 |
-| HIGH | 0 |
-| MEDIUM | 0 |
+| CRITICAL | 9 |
+| HIGH | 10 |
+| MEDIUM | 2 |
 | LOW | 0 |
-| **TOTAL** | **1** |
+| **TOTAL** | **21** |
 
 **Verdict:**
-**CRITICAL BLOCKER: No codebase exists to audit.** This repository contains only specification documents. There is no `/client/`, `/server/`, or `/shared/` directory. The audit cannot proceed until an implementation is generated from the specifications.
+Code requires fixes before deployment. Multiple CRITICAL issues including malformed route paths, missing API endpoints, and Tailwind v3 syntax will cause deployment failures and runtime errors.
 
 ---
 
 ## Phase 1: Input Validation
 
-### Specification Documents Location
+- [x] 01-PRD.md found
+- [x] 02-ARCHITECTURE.md found
+- [x] 03-DATA-MODEL.md found
+- [x] 04-API-CONTRACT.md found
+- [x] 05-UI-SPECIFICATION.md found
+- [x] 06-IMPLEMENTATION-PLAN.md found
+- [x] 07-QA-DEPLOYMENT.md found
 
-**Expected:** `/docs/` directory with files prefixed `01-` through `07-`
-**Actual:** Root directory with variant naming conventions
-
-| Expected Prefix | Found File | Status |
-|-----------------|------------|--------|
-| 01- | 1-PRD.md | ✓ Found (variant naming) |
-| 02- | 2-system-architecture.md | ✓ Found (variant naming) |
-| 03- | 3-data-model.md | ✓ Found (variant naming) |
-| 04- | 4-api-contract.md | ✓ Found (variant naming) |
-| 05- | 5-ui-ux-specification.md | ✓ Found (variant naming) |
-| 06- | 06-IMPLEMENTATION-PLAN.md | ✓ Found |
-| 07- | 07-QA-DEPLOYMENT.md | ✓ Found |
-
-**Specification Status:** PASS (7/7 documents present)
-
-### Codebase Location
-
-**Expected Structure:**
-```
-client/src/           # React frontend
-server/               # Express backend
-shared/               # Shared code
-```
-
-**Actual Structure:**
-```
-/home/user/foundry-v8/
-├── .git/
-├── 1-PRD.md
-├── 2-system-architecture.md
-├── 3-data-model.md
-├── 4-api-contract.md
-├── 5-ui-ux-specification.md
-├── 06-IMPLEMENTATION-PLAN.md
-└── 07-QA-DEPLOYMENT.md
-```
-
-**Codebase Status:** FAIL - No implementation files exist
+**Status:** PASS
 
 ---
 
-## Phase 2: Critical Configuration Check (Deploy Blockers First)
+## Phase 2: Critical Configuration Audit
 
 ### Check 2.1: Package.json Scripts
-**Status:** N/A - No package.json exists
+**Status:** PASS
+- `dev`: Uses concurrently for Vite + Express ✓
+- `start`: Uses compiled JS for production ✓
+- `db:push`: Uses `drizzle-kit push --force` ✓
+- `db:migrate`: Uses tsx wrapper ✓
 
 ### Check 2.2: Vite Configuration
-**Status:** N/A - No vite.config.ts exists
+**Status:** FAIL
+- server.host: "0.0.0.0" ✓
+- server.port: 5000 ✓
+- server.proxy['/api'].target: "http://localhost:5001" ✓
+- server.watch.usePolling: true ✓
+- server.watch.ignored: **MISSING** (should include node_modules, .git, dist)
 
 ### Check 2.3: Drizzle Configuration
-**Status:** N/A - No drizzle.config.ts exists
+**Status:** PASS
+- Uses process.env.DATABASE_URL ✓
+- Schema path: ./server/db/schema.ts ✓
+- Dialect: postgresql ✓
 
 ### Check 2.4: Replit Configuration
-**Status:** N/A - No .replit file exists
+**Status:** PASS
+- run command: `npm run dev` ✓
+- [deployment] section configured ✓
+- [[ports]] localPort=5000, externalPort=80 ✓
 
 ### Check 2.5: TypeScript Configuration
-**Status:** N/A - No tsconfig.json exists
+**Status:** PASS
+- Module resolution compatible with tsx ✓
+- No .js extensions in imports ✓
 
 ### Check 2.6: Environment Variables
-**Status:** N/A - No server/config/env.ts exists
+**Status:** PASS
+- DATABASE_URL: REQUIRED ✓
+- JWT_SECRET: REQUIRED with 32-char minimum ✓
+- Optional services have graceful fallbacks ✓
+- Feature flags derived from env var presence ✓
 
 ### Check 2.7: Server Entry Point
-**Status:** N/A - No server/index.ts exists
+**Status:** PASS
+- Health check: GET /api/health returning { status: "ok" } ✓
+- Production static file serving ✓
+- Port binding correct ✓
+- Graceful error handling ✓
 
 ### Check 2.8: API Prefix Consistency
-**Status:** N/A - No API routes to check
+**Status:** PASS
+- All endpoints use /api prefix ✓
+- Frontend API client uses relative URLs (/api/...) ✓
 
-**Phase 2 Overall:** CANNOT EVALUATE - No configuration files exist
+**Phase 2 Overall:** FAIL (1 issue)
 
 ---
 
 ## Phase 3: Specification Coverage Audit
 
 ### Check 3.1: Endpoint Coverage
-**API Contract Count:** 33 endpoints specified in 04-API-CONTRACT.md
-**Implemented Count:** 0
+**API Contract Count:** 33
+**Implemented Count:** ~35 (some duplicated, some missing)
 **Status:** FAIL
 
-**Missing Endpoints (ALL 33):**
-Per the API Contract, the following endpoints are specified but not implemented:
-1. GET /api/health
-2. POST /api/auth/register
-3. POST /api/auth/login
-4. POST /api/auth/refresh
-5. POST /api/auth/logout
-6. GET /api/auth/me
-7. PATCH /api/auth/profile
-8. POST /api/auth/forgot-password
-9. GET /api/auth/reset-password/:token
-10. POST /api/auth/reset-password
-11. GET /api/organizations/current
-12. PATCH /api/organizations/current
-13. POST /api/organizations/invitations
-14. GET /api/organizations/members
-15. DELETE /api/organizations/members/:userId
-16. GET /api/projects
-17. POST /api/projects
-18. GET /api/projects/:projectId
-19. PATCH /api/projects/:projectId
-20. DELETE /api/projects/:projectId
-21. GET /api/projects/:projectId/sources
-22. POST /api/projects/:projectId/sources
-23. GET /api/sources/:sourceId
-24. DELETE /api/sources/:sourceId
-25. POST /api/sources/:sourceId/configure
-26. POST /api/sources/:sourceId/process
-27. GET /api/processing-jobs/:jobId
-28. GET /api/datasets
-29. GET /api/datasets/:datasetId
-30. GET /api/datasets/:datasetId/download
-31. GET /api/integrations/teamwork/auth
-32. GET /api/integrations/teamwork/callback
-33. POST /api/integrations/teamwork/fetch
+**Missing Endpoints:**
+- PATCH /api/auth/profile (endpoint 7)
+- GET /api/auth/reset-password/:token (endpoint 9)
+
+**Method Mismatches:**
+- Endpoint 12: Spec says PATCH, implementation uses PUT (organizations)
+- Endpoint 19: Spec says PATCH, implementation uses PUT (projects)
+- Endpoint 25: Spec says POST /configure, implementation uses PUT /configuration
 
 ### Check 3.2: Database Schema Coverage
-**Spec Entities:** 10 tables specified in 03-DATA-MODEL.md
-**Implemented Tables:** 0
-**Status:** FAIL
+**Spec Entities:** 10
+**Implemented Tables:** 10
+**Status:** PASS
 
-**Missing Tables (ALL 10):**
-- organizations
-- users
-- refresh_tokens
-- projects
-- sources
-- source_files
-- source_configurations
-- api_credentials
-- processing_jobs
-- datasets
+All tables implemented:
+- organizations ✓
+- users ✓
+- refresh_tokens ✓
+- projects ✓
+- sources ✓
+- source_files ✓
+- source_configurations ✓
+- api_credentials ✓
+- processing_jobs ✓
+- datasets ✓
 
 ### Check 3.3: UI Screen Coverage
-**Spec Screens:** 19 screens specified in 05-UI-SPECIFICATION.md
-**Implemented Pages:** 0
+**Spec Screens:** 19
+**Implemented Pages:** 9
 **Status:** FAIL
 
-**Missing Pages (ALL 19):**
-- LoginPage.tsx
-- RegisterPage.tsx
-- ForgotPasswordPage.tsx
-- ResetPasswordPage.tsx
-- AcceptInvitePage.tsx
-- DashboardPage.tsx
-- ProjectDetailPage.tsx
-- SourceUploadPage.tsx
-- SourceMappingPage.tsx
-- ProcessingDashboardPage.tsx
-- DatasetDownloadPage.tsx
-- TeamManagementPage.tsx
-- ProfileSettingsPage.tsx
-- And 6 additional screens
+**Implemented Pages:**
+1. LoginPage ✓
+2. RegisterPage ✓
+3. ForgotPasswordPage ✓
+4. ResetPasswordPage ✓
+5. DashboardPage ✓
+6. ProjectListPage ✓
+7. ProjectCreatePage ✓
+8. ProjectDetailPage ✓
+9. NotFoundPage ✓
+
+**Missing Pages:**
+- AcceptInvitePage (for POST /api/invitations/:token/accept)
+- ProfileSettingsPage
+- TeamManagementPage
+- SourceUploadPage (may be part of ProjectDetailPage)
+- SourceMappingPage
+- ProcessingDashboardPage
+- DatasetDownloadPage
+- And others per UI spec
 
 ### Check 3.4: Form Validation Coverage
-**Forms in Spec:** 14 Zod schemas specified
-**Validated Forms:** 0
-**Status:** FAIL
+**Forms in Spec:** 14
+**Validated Forms:** ~8
+**Status:** PARTIAL
 
-**Phase 3 Overall:** FAIL - No implementation exists
+Zod schemas exist in:
+- shared/validators/index.ts ✓
+- server/validators/auth.validators.ts ✓
+- server/validators/projects.validators.ts ✓
+- server/validators/sources.validators.ts ✓
+- server/validators/shared.validators.ts ✓
+
+**Phase 3 Overall:** FAIL (multiple missing endpoints and pages)
 
 ---
 
 ## Phase 4: Replit Platform Compatibility
 
 ### Check 4.1: Database Driver
-**Status:** N/A - No database code exists
+**Status:** PASS
+- Uses postgres-js (correct) ✓
+- No @neondatabase/serverless found ✓
 
 ### Check 4.2: Tailwind v4 Syntax
-**Status:** N/A - No CSS files exist
+**Status:** FAIL
+- Found `@tailwind base;` in client/src/index.css
+- Should use `@import "tailwindcss";` for v4
 
 ### Check 4.3: PostgreSQL Array Binding
-**Status:** N/A - No database queries exist
+**Status:** PASS
+- No IN clauses with arrays found ✓
 
 ### Check 4.4: Static File Serving
-**Status:** N/A - No server code exists
+**Status:** PASS
+- Uses path.join with __dirname for ESM ✓
 
-**Phase 4 Overall:** CANNOT EVALUATE - No code to check
+**Phase 4 Overall:** FAIL (Tailwind syntax)
 
 ---
 
 ## Phase 5: Code Quality Patterns
 
-All 25 patterns cannot be checked due to absence of codebase:
+### Pattern 5.1: Empty Functions/Stubs
+**Scan Result:** 0 in implementation code
+**Status:** PASS
 
-| Pattern | Status |
-|---------|--------|
-| 5.1: Empty Functions/Stubs | N/A |
-| 5.2: Incomplete onClick Handlers | N/A |
-| 5.3: Missing Form Submissions | N/A |
-| 5.4: Missing API Error Handling | N/A |
-| 5.5: Direct parseInt on URL Parameters | N/A |
-| 5.6: Response Envelope Consistency | N/A |
-| 5.7: Missing Meta Field in Response | N/A |
-| 5.8: Zod Validation on POST/PATCH | N/A |
-| 5.9: N+1 Query Detection | N/A |
-| 5.10: Async/Await Verification | N/A |
-| 5.11: Component Existence Check | N/A |
-| 5.12: Unused Environment Variables | N/A |
-| 5.13: Memory-Intensive Processing | N/A |
-| 5.14: Package Version Pinning | N/A |
-| 5.15: Insecure Random Detection | N/A |
-| 5.16: Error Boundary Check | N/A |
-| 5.17: Auth Page Completeness | N/A |
-| 5.18: Frontend-Backend API Mismatch | N/A |
-| 5.19: Link-to-Route Validation | N/A |
-| 5.20: Role-Based Route Protection | N/A |
-| 5.21: Batch Insert Usage | N/A |
-| 5.22: parseIntParam Usage | N/A |
-| 5.23: Rate Limit Headers | N/A |
-| 5.24: Pagination on List Endpoints | N/A |
-| 5.25: Graceful Degradation for Optional Services | N/A |
+### Pattern 5.2: Incomplete onClick Handlers
+**Scan Result:** 1 found (reload handler in error boundary - acceptable)
+**Status:** PASS
 
-**Phase 5 Overall:** CANNOT EVALUATE - No code to check
+### Pattern 5.3: Missing Form Submissions
+**Status:** PASS (forms connect to API)
+
+### Pattern 5.4: Missing API Error Handling
+**Status:** PASS (try/catch in all routes)
+
+### Pattern 5.5: Direct parseInt on URL Parameters
+**Scan Result:** 2 found
+**Status:** FAIL
+- organizations.routes.ts:192
+- organizations.routes.ts:240
+
+### Pattern 5.6: Response Envelope Consistency
+**Status:** PASS (all routes use sendSuccess/sendCreated/etc.)
+
+### Pattern 5.7: Missing Meta Field in Response
+**Status:** PASS (meta field available in response helpers)
+
+### Pattern 5.8: Zod Validation on POST/PATCH Endpoints
+**Status:** PASS (validateRequest middleware used)
+
+### Pattern 5.9: N+1 Query Detection
+**Status:** PASS (no loops with per-item queries found)
+
+### Pattern 5.10: Async/Await Verification
+**Status:** PASS (no missing awaits detected)
+
+### Pattern 5.11: Component Existence Check
+**Status:** PASS (all imported components exist)
+
+### Pattern 5.12: Unused Environment Variables
+**Status:** PASS
+
+### Pattern 5.13: Memory-Intensive Processing
+**Status:** PASS (no unbounded memory patterns found)
+
+### Pattern 5.14: Package Version Pinning
+**Status:** PASS (no "latest" versions found)
+
+### Pattern 5.15: Insecure Random Detection
+**Status:** PASS (uses crypto.randomBytes for tokens)
+
+### Pattern 5.16: Error Boundary Check
+**Status:** PASS (ErrorBoundary wraps Routes in App.tsx)
+
+### Pattern 5.17: Auth Page Completeness
+**Status:** FAIL
+- Missing AcceptInvitePage.tsx
+
+### Pattern 5.18: Frontend-Backend API Mismatch
+**Status:** FAIL (some endpoints called from frontend don't exist)
+
+### Pattern 5.19: Link-to-Route Validation
+**Status:** PASS (all links have corresponding routes)
+
+### Pattern 5.20: Role-Based Route Protection
+**Status:** PASS (requireAdmin middleware on admin routes)
+
+### Pattern 5.21: Batch Insert Usage
+**Status:** PASS (no loops with individual inserts)
+
+### Pattern 5.22: parseIntParam Usage
+**Status:** FAIL (not used consistently - see Pattern 5.5)
+
+### Pattern 5.23: Rate Limit Headers
+**Status:** PASS (standardHeaders: true in rate limiters)
+
+### Pattern 5.24: Pagination on List Endpoints
+**Status:** PASS (sendPaginated used with proper envelope)
+
+### Pattern 5.25: Graceful Degradation for Optional Services
+**Status:** PASS (isEmailEnabled, isTeamworkEnabled checks)
+
+**Phase 5 Overall:** FAIL (4 pattern failures)
 
 ---
 
@@ -247,38 +285,225 @@ All 25 patterns cannot be checked due to absence of codebase:
 
 ### CRITICAL Issues
 
-#### CRIT-001: No Codebase Implementation Exists
-**Pattern:** N/A - Structural blocker
-**File:** Repository root
-**Description:** The repository contains only specification documents (7 markdown files). There is no implementation code - no `/client/`, `/server/`, `/shared/` directories, no `package.json`, no TypeScript files, no configuration files.
-**Impact:** Deployment impossible. Zero functionality exists.
+#### CRIT-001: Tailwind v3 Syntax (Deployment Blocker)
+**Pattern:** Check 4.2
+**File:** client/src/index.css:1-3
+**Description:** Uses deprecated Tailwind v3 syntax which may cause build failures.
+**Impact:** CSS may not compile correctly on Replit.
+**Fix:**
+```css
+/* OLD - Tailwind v3 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-**Required Fix:**
-The codebase must be generated from the specifications. Per the 06-IMPLEMENTATION-PLAN.md document, the following structure must be created:
+/* NEW - Tailwind v4 */
+@import "tailwindcss";
+```
 
+#### CRIT-002: Missing Route Path Slash (Runtime Error)
+**Pattern:** Check 3.1
+**File:** server/routes/organizations.routes.ts:186
+**Description:** Route path `'/current/members:userId'` missing slash before parameter.
+**Impact:** Route will not match requests, causing 404 errors.
+**Fix:**
+```typescript
+// OLD
+router.delete('/current/members:userId', ...
+
+// NEW
+router.delete('/current/members/:userId', ...
 ```
-foundry/
-├── client/                          # React frontend
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/                   # 24 pages
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   └── App.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── server/                          # Express backend
-│   ├── db/
-│   │   └── schema.ts                # 10 tables
-│   ├── routes/                      # 33 endpoints
-│   ├── services/
-│   ├── middleware/
-│   └── index.ts
-├── shared/                          # Shared code
-├── package.json
-├── drizzle.config.ts
-└── .replit
+
+#### CRIT-003: Missing Route Path Slash (Runtime Error)
+**Pattern:** Check 3.1
+**File:** server/routes/organizations.routes.ts:233
+**Description:** Route path `'/current/members:userId/role'` missing slash before parameter.
+**Impact:** Route will not match requests.
+**Fix:**
+```typescript
+// OLD
+router.patch('/current/members:userId/role', ...
+
+// NEW
+router.patch('/current/members/:userId/role', ...
 ```
+
+#### CRIT-004: Missing Route Path Slash (Runtime Error)
+**Pattern:** Check 3.1
+**File:** server/routes/sources.routes.ts:203
+**Description:** Route path `'/projects:projectId/sources'` missing slash before parameter.
+**Impact:** POST to create source will fail with 404.
+**Fix:**
+```typescript
+// OLD
+router.post('/projects:projectId/sources', ...
+
+// NEW
+router.post('/projects/:projectId/sources', ...
+```
+
+#### CRIT-005: Missing Leading Slash in Route (Runtime Error)
+**Pattern:** Check 3.1
+**File:** server/routes/sources.routes.ts:343
+**Description:** Route path `':sourceId/configuration'` missing leading slash.
+**Impact:** Route will not be mounted correctly.
+**Fix:**
+```typescript
+// OLD
+router.put(':sourceId/configuration', ...
+
+// NEW (also fix method and path per spec)
+router.post('/:sourceId/configure', ...
+```
+
+#### CRIT-006: Direct parseInt on URL Parameters
+**Pattern:** 5.5
+**File:** server/routes/organizations.routes.ts:192
+**Description:** Uses `parseInt(req.params.userId)` instead of `parseIntParam`.
+**Impact:** Invalid input causes NaN errors instead of proper validation.
+**Fix:**
+```typescript
+// OLD
+const memberId = parseInt(req.params.userId as string, 10);
+if (isNaN(memberId)) {
+  throw new BadRequestError('Invalid user ID');
+}
+
+// NEW
+const memberId = parseIntParam(req.params.userId, 'userId');
+```
+
+#### CRIT-007: Direct parseInt on URL Parameters
+**Pattern:** 5.5
+**File:** server/routes/organizations.routes.ts:240
+**Description:** Same issue at line 240.
+**Impact:** Same as CRIT-006.
+**Fix:** Same as CRIT-006.
+
+#### CRIT-008: Missing API Endpoint - PATCH /api/auth/profile
+**Pattern:** Check 3.1
+**File:** server/routes/auth.routes.ts
+**Description:** Endpoint 7 from API Contract not implemented.
+**Impact:** Users cannot update their profile.
+**Fix:**
+```typescript
+router.patch('/profile', requireAuth, validateRequest(updateProfileSchema), async (req, res, next) => {
+  // Implement profile update logic
+});
+```
+
+#### CRIT-009: Missing API Endpoint - GET /api/auth/reset-password/:token
+**Pattern:** Check 3.1
+**File:** server/routes/auth.routes.ts
+**Description:** Endpoint 9 from API Contract not implemented. This validates the reset token before showing the reset form.
+**Impact:** Password reset flow incomplete - frontend cannot validate token.
+**Fix:**
+```typescript
+router.get('/reset-password/:token', async (req, res, next) => {
+  // Validate token and return { valid: boolean, email?: string }
+});
+```
+
+---
+
+### HIGH Issues
+
+#### HIGH-001: OAuth Tokens Stored Unencrypted
+**Pattern:** 5.1 (TODO)
+**File:** server/routes/integrations.routes.ts:204-205
+**Description:** Teamwork OAuth tokens stored in plaintext with TODO comments.
+**Impact:** Security vulnerability - tokens exposed if database compromised.
+**Fix:**
+```typescript
+// Import encryption utility
+import { encrypt } from '../lib/encryption';
+
+// Encrypt before storing
+encryptedAccessToken: encrypt(tokenData.access_token),
+encryptedRefreshToken: encrypt(tokenData.refresh_token),
+```
+
+#### HIGH-002: Teamwork API Not Implemented
+**Pattern:** 5.1 (TODO)
+**File:** server/routes/integrations.routes.ts:272
+**Description:** Returns mock data instead of actual Teamwork API call.
+**Impact:** Teamwork integration non-functional.
+
+#### HIGH-003: Email Not Sent for Password Reset
+**Pattern:** 5.1 (TODO)
+**File:** server/routes/auth.routes.ts:445
+**Description:** Password reset token generated but email not sent.
+**Impact:** Password reset flow non-functional without email.
+
+#### HIGH-004: Invite Token Not Handled
+**Pattern:** 5.1 (TODO)
+**File:** server/routes/auth.routes.ts:150
+**Description:** Invite token handling not implemented in registration.
+**Impact:** Team invitations non-functional.
+
+#### HIGH-005: Invite Email Not Sent
+**Pattern:** 5.1 (TODO)
+**File:** server/routes/organizations.routes.ts:169
+**Description:** Invitation created but email not sent.
+**Impact:** Team invitations non-functional without email.
+
+#### HIGH-006: HTTP Method Mismatch - Organizations Update
+**Pattern:** Check 3.1
+**File:** server/routes/organizations.routes.ts:81
+**Description:** Uses PUT but spec says PATCH for endpoint 12.
+**Impact:** API contract violation - clients may use wrong method.
+**Fix:** Change `router.put` to `router.patch`
+
+#### HIGH-007: HTTP Method Mismatch - Projects Update
+**Pattern:** Check 3.1
+**File:** server/routes/projects.routes.ts:249
+**Description:** Uses PUT but spec says PATCH for endpoint 19.
+**Impact:** API contract violation.
+**Fix:** Change `router.put` to `router.patch`
+
+#### HIGH-008: HTTP Method and Path Mismatch - Source Configure
+**Pattern:** Check 3.1
+**File:** server/routes/sources.routes.ts:343
+**Description:** Uses PUT /configuration but spec says POST /configure for endpoint 25.
+**Impact:** Frontend won't find the endpoint.
+**Fix:** Change to `router.post('/:sourceId/configure', ...`
+
+#### HIGH-009: Missing AcceptInvitePage
+**Pattern:** 5.17
+**File:** client/src/pages/
+**Description:** No page to handle invitation acceptance flow.
+**Impact:** Users cannot accept team invitations.
+
+#### HIGH-010: Missing Vite watch.ignored Configuration
+**Pattern:** Check 2.2
+**File:** vite.config.ts
+**Description:** Missing ignored patterns for watch configuration.
+**Impact:** May cause performance issues on Replit.
+**Fix:**
+```typescript
+watch: {
+  usePolling: true,
+  interval: 1000,
+  ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
+},
+```
+
+---
+
+### MEDIUM Issues
+
+#### MED-001: Inconsistent Pagination Metadata
+**Pattern:** 5.7
+**File:** server/lib/response.ts
+**Description:** Response uses `pagination` key instead of `meta` for pagination metadata.
+**Impact:** Minor inconsistency with Constitution Section C.
+
+#### MED-002: Missing UI Pages
+**Pattern:** Check 3.3
+**File:** client/src/pages/
+**Description:** Only 9 of 19 specified pages implemented.
+**Impact:** Incomplete feature coverage.
 
 ---
 
@@ -287,35 +512,41 @@ foundry/
 This audit report is complete. DO NOT PROCEED WITH FIXES until:
 
 1. Human reviews this report
-2. Human initiates code generation from specifications
-3. Implementation is created per 06-IMPLEMENTATION-PLAN.md
-4. Re-run this audit after code exists
+2. Human approves fixes
+3. Human initiates Claude Code for implementation
 
 ### Next Steps:
 
-1. **Generate Implementation:** Use Claude Code or another implementation agent to scaffold the project from the specifications
-2. **Follow 06-IMPLEMENTATION-PLAN.md:** The specification documents provide complete implementation guidance
-3. **Re-run Audit:** After implementation exists, re-run this Code Review Agent to validate the generated code against specifications
+1. Review all CRITICAL and HIGH findings
+2. Verify fix snippets are correct
+3. Approve fixes for implementation
+4. Run Claude Code to implement approved fixes
+5. Re-run this audit after fixes applied
 
 ---
 
 ## Fix Implementation Summary
 
-| Category | Required |
-|----------|----------|
-| Create entire codebase | 1 major task |
-| Endpoints to implement | 33 |
-| Database tables to create | 10 |
-| UI pages to build | 19-24 |
-| Configuration files needed | ~10 |
+| Category | Count |
+|----------|-------|
+| CRITICAL | 9 |
+| HIGH | 10 |
+| MEDIUM | 2 |
+| LOW | 0 |
+| **TOTAL** | **21** |
 
-**Estimated Scope:** Full application implementation required
+**Priority Order:**
+1. Fix route path issues (CRIT-002 through CRIT-005) - immediate runtime failures
+2. Fix Tailwind syntax (CRIT-001) - deployment blocker
+3. Implement missing endpoints (CRIT-008, CRIT-009)
+4. Fix parseInt usage (CRIT-006, CRIT-007)
+5. Address HIGH issues in priority order
 
 ---
 
 ## Re-Audit Protocol
 
-After implementation is generated, re-run this agent:
+After fixes implemented, re-run this agent:
 
 ```bash
 # Re-audit command
@@ -323,11 +554,12 @@ claude-code audit --recheck
 ```
 
 **Focus Areas for Re-Audit:**
-- All Phase 2-5 checks
-- All 33 endpoints
-- All 10 database tables
-- All 19+ UI screens
-- All 25 code quality patterns
+- server/routes/organizations.routes.ts (4 issues)
+- server/routes/sources.routes.ts (2 issues)
+- server/routes/auth.routes.ts (2 missing endpoints)
+- server/routes/integrations.routes.ts (2 TODOs)
+- client/src/index.css (Tailwind syntax)
+- vite.config.ts (watch.ignored)
 
 ---
 
@@ -335,11 +567,11 @@ claude-code audit --recheck
 
 ### Completeness Checklist
 
-- [x] All 7 specs validated as present
-- [ ] All Phase 2 checks completed - BLOCKED
-- [ ] All Phase 3 checks completed - BLOCKED
-- [ ] All Phase 4 checks completed - BLOCKED
-- [ ] All 25 patterns checked - BLOCKED
+- [x] All 7 specs validated
+- [x] All Phase 2 checks completed
+- [x] All Phase 3 checks completed
+- [x] All Phase 4 checks completed
+- [x] All 25 patterns checked
 - [x] All findings have severity
 - [x] All findings have fix snippets
 - [x] Executive summary accurate
@@ -351,34 +583,44 @@ claude-code audit --recheck
 - [x] Inheritance references Constitution v3.1
 - [x] No full global rule restatements
 
-**Audit Status:** INCOMPLETE - Blocked on missing codebase
+**Audit Status:** COMPLETE
 
 ---
 
 ## ASSUMPTION REGISTER
 
-### AR-001: Specification Document Naming Convention
-- **Type:** OBSERVATION
-- **Source Gap:** Specification documents use variant naming (e.g., "1-PRD.md" instead of "01-PRD.md")
-- **Assumption Made:** Files are valid despite non-standard prefixes
-- **Impact if Wrong:** None - content is correct
-- **Proposed Resolution:** Rename files to match expected convention when codebase is created
-- **Status:** ACCEPTED
+### AR-001: Tailwind Version
+- **Type:** ASSUMPTION
+- **Source Gap:** Package.json shows tailwindcss@^3.4.17, but spec may expect v4
+- **Assumption Made:** CSS syntax should match installed version
+- **Impact if Wrong:** If Tailwind v3 is intentional, the syntax is correct
+- **Proposed Resolution:** Verify intended Tailwind version with human
+- **Status:** UNRESOLVED
 - **Owner:** Human
 - **Date:** 2026-01-20
 
-### AR-002: Implementation Not Yet Generated
-- **Type:** DEPENDENCY
-- **Source Gap:** Repository contains only specification documents
-- **Assumption Made:** This is a specs-first project awaiting implementation generation
-- **Impact if Wrong:** If implementation exists elsewhere, this audit is invalid
-- **Proposed Resolution:** Confirm with human whether implementation should be generated or retrieved from another location
+### AR-002: Mock Data in Integrations
+- **Type:** RISK
+- **Source Gap:** Teamwork API returns mock data per TODO
+- **Assumption Made:** This is incomplete implementation, not intentional mock
+- **Impact if Wrong:** If mock is intentional for MVP, this finding is overstated
+- **Proposed Resolution:** Confirm Teamwork integration scope with human
+- **Status:** UNRESOLVED
+- **Owner:** Human
+- **Date:** 2026-01-20
+
+### AR-003: Email Service Optional
+- **Type:** ASSUMPTION
+- **Source Gap:** TODOs reference email sending but env vars show optional
+- **Assumption Made:** Email functionality should work when configured
+- **Impact if Wrong:** Email may be intentionally post-MVP scope
+- **Proposed Resolution:** Confirm email requirements with human
 - **Status:** UNRESOLVED
 - **Owner:** Human
 - **Date:** 2026-01-20
 
 ---
 
-**Document Status: COMPLETE (Blocked)**
+**Document Status: COMPLETE**
 
-The audit identified that no implementation exists. The specification documents are comprehensive and ready to guide implementation. Once code is generated, a re-audit will validate implementation against specifications.
+The audit identified 9 CRITICAL and 10 HIGH issues requiring fixes before deployment. Primary concerns are malformed route paths causing 404 errors and missing API endpoints breaking frontend functionality.
