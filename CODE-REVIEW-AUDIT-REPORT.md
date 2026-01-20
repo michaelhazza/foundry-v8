@@ -42,54 +42,27 @@ Code requires fixes before deployment. Multiple CRITICAL issues including malfor
 
 ### Check 2.1: Package.json Scripts
 **Status:** PASS
-- `dev`: Uses concurrently for Vite + Express ✓
-- `start`: Uses compiled JS for production ✓
-- `db:push`: Uses `drizzle-kit push --force` ✓
-- `db:migrate`: Uses tsx wrapper ✓
 
 ### Check 2.2: Vite Configuration
-**Status:** FAIL
-- server.host: "0.0.0.0" ✓
-- server.port: 5000 ✓
-- server.proxy['/api'].target: "http://localhost:5001" ✓
-- server.watch.usePolling: true ✓
-- server.watch.ignored: **MISSING** (should include node_modules, .git, dist)
+**Status:** FAIL (missing watch.ignored)
 
 ### Check 2.3: Drizzle Configuration
 **Status:** PASS
-- Uses process.env.DATABASE_URL ✓
-- Schema path: ./server/db/schema.ts ✓
-- Dialect: postgresql ✓
 
 ### Check 2.4: Replit Configuration
 **Status:** PASS
-- run command: `npm run dev` ✓
-- [deployment] section configured ✓
-- [[ports]] localPort=5000, externalPort=80 ✓
 
 ### Check 2.5: TypeScript Configuration
 **Status:** PASS
-- Module resolution compatible with tsx ✓
-- No .js extensions in imports ✓
 
 ### Check 2.6: Environment Variables
 **Status:** PASS
-- DATABASE_URL: REQUIRED ✓
-- JWT_SECRET: REQUIRED with 32-char minimum ✓
-- Optional services have graceful fallbacks ✓
-- Feature flags derived from env var presence ✓
 
 ### Check 2.7: Server Entry Point
 **Status:** PASS
-- Health check: GET /api/health returning { status: "ok" } ✓
-- Production static file serving ✓
-- Port binding correct ✓
-- Graceful error handling ✓
 
 ### Check 2.8: API Prefix Consistency
 **Status:** PASS
-- All endpoints use /api prefix ✓
-- Frontend API client uses relative URLs (/api/...) ✓
 
 **Phase 2 Overall:** FAIL (1 issue)
 
@@ -99,74 +72,19 @@ Code requires fixes before deployment. Multiple CRITICAL issues including malfor
 
 ### Check 3.1: Endpoint Coverage
 **API Contract Count:** 33
-**Implemented Count:** ~35 (some duplicated, some missing)
+**Implemented Count:** 31 (2 missing, 3 method mismatches)
 **Status:** FAIL
-
-**Missing Endpoints:**
-- PATCH /api/auth/profile (endpoint 7)
-- GET /api/auth/reset-password/:token (endpoint 9)
-
-**Method Mismatches:**
-- Endpoint 12: Spec says PATCH, implementation uses PUT (organizations)
-- Endpoint 19: Spec says PATCH, implementation uses PUT (projects)
-- Endpoint 25: Spec says POST /configure, implementation uses PUT /configuration
 
 ### Check 3.2: Database Schema Coverage
-**Spec Entities:** 10
-**Implemented Tables:** 10
-**Status:** PASS
-
-All tables implemented:
-- organizations ✓
-- users ✓
-- refresh_tokens ✓
-- projects ✓
-- sources ✓
-- source_files ✓
-- source_configurations ✓
-- api_credentials ✓
-- processing_jobs ✓
-- datasets ✓
+**Status:** PASS (10/10 tables)
 
 ### Check 3.3: UI Screen Coverage
-**Spec Screens:** 19
-**Implemented Pages:** 9
-**Status:** FAIL
-
-**Implemented Pages:**
-1. LoginPage ✓
-2. RegisterPage ✓
-3. ForgotPasswordPage ✓
-4. ResetPasswordPage ✓
-5. DashboardPage ✓
-6. ProjectListPage ✓
-7. ProjectCreatePage ✓
-8. ProjectDetailPage ✓
-9. NotFoundPage ✓
-
-**Missing Pages:**
-- AcceptInvitePage (for POST /api/invitations/:token/accept)
-- ProfileSettingsPage
-- TeamManagementPage
-- SourceUploadPage (may be part of ProjectDetailPage)
-- SourceMappingPage
-- ProcessingDashboardPage
-- DatasetDownloadPage
-- And others per UI spec
+**Status:** FAIL (9/19 pages)
 
 ### Check 3.4: Form Validation Coverage
-**Forms in Spec:** 14
-**Validated Forms:** ~8
 **Status:** PARTIAL
 
-Zod schemas exist in:
-- shared/validators/index.ts ✓
-- server/validators/auth.validators.ts ✓
-- server/validators/projects.validators.ts ✓
-- server/validators/sources.validators.ts ✓
-- server/validators/shared.validators.ts ✓
-
-**Phase 3 Overall:** FAIL (multiple missing endpoints and pages)
+**Phase 3 Overall:** FAIL
 
 ---
 
@@ -174,416 +92,765 @@ Zod schemas exist in:
 
 ### Check 4.1: Database Driver
 **Status:** PASS
-- Uses postgres-js (correct) ✓
-- No @neondatabase/serverless found ✓
 
 ### Check 4.2: Tailwind v4 Syntax
 **Status:** FAIL
-- Found `@tailwind base;` in client/src/index.css
-- Should use `@import "tailwindcss";` for v4
 
 ### Check 4.3: PostgreSQL Array Binding
 **Status:** PASS
-- No IN clauses with arrays found ✓
 
 ### Check 4.4: Static File Serving
 **Status:** PASS
-- Uses path.join with __dirname for ESM ✓
 
-**Phase 4 Overall:** FAIL (Tailwind syntax)
+**Phase 4 Overall:** FAIL
 
 ---
 
 ## Phase 5: Code Quality Patterns
 
-### Pattern 5.1: Empty Functions/Stubs
-**Scan Result:** 0 in implementation code
-**Status:** PASS
+**Patterns Passed:** 21/25
+**Patterns Failed:** 4 (5.5, 5.17, 5.18, 5.22)
 
-### Pattern 5.2: Incomplete onClick Handlers
-**Scan Result:** 1 found (reload handler in error boundary - acceptable)
-**Status:** PASS
-
-### Pattern 5.3: Missing Form Submissions
-**Status:** PASS (forms connect to API)
-
-### Pattern 5.4: Missing API Error Handling
-**Status:** PASS (try/catch in all routes)
-
-### Pattern 5.5: Direct parseInt on URL Parameters
-**Scan Result:** 2 found
-**Status:** FAIL
-- organizations.routes.ts:192
-- organizations.routes.ts:240
-
-### Pattern 5.6: Response Envelope Consistency
-**Status:** PASS (all routes use sendSuccess/sendCreated/etc.)
-
-### Pattern 5.7: Missing Meta Field in Response
-**Status:** PASS (meta field available in response helpers)
-
-### Pattern 5.8: Zod Validation on POST/PATCH Endpoints
-**Status:** PASS (validateRequest middleware used)
-
-### Pattern 5.9: N+1 Query Detection
-**Status:** PASS (no loops with per-item queries found)
-
-### Pattern 5.10: Async/Await Verification
-**Status:** PASS (no missing awaits detected)
-
-### Pattern 5.11: Component Existence Check
-**Status:** PASS (all imported components exist)
-
-### Pattern 5.12: Unused Environment Variables
-**Status:** PASS
-
-### Pattern 5.13: Memory-Intensive Processing
-**Status:** PASS (no unbounded memory patterns found)
-
-### Pattern 5.14: Package Version Pinning
-**Status:** PASS (no "latest" versions found)
-
-### Pattern 5.15: Insecure Random Detection
-**Status:** PASS (uses crypto.randomBytes for tokens)
-
-### Pattern 5.16: Error Boundary Check
-**Status:** PASS (ErrorBoundary wraps Routes in App.tsx)
-
-### Pattern 5.17: Auth Page Completeness
-**Status:** FAIL
-- Missing AcceptInvitePage.tsx
-
-### Pattern 5.18: Frontend-Backend API Mismatch
-**Status:** FAIL (some endpoints called from frontend don't exist)
-
-### Pattern 5.19: Link-to-Route Validation
-**Status:** PASS (all links have corresponding routes)
-
-### Pattern 5.20: Role-Based Route Protection
-**Status:** PASS (requireAdmin middleware on admin routes)
-
-### Pattern 5.21: Batch Insert Usage
-**Status:** PASS (no loops with individual inserts)
-
-### Pattern 5.22: parseIntParam Usage
-**Status:** FAIL (not used consistently - see Pattern 5.5)
-
-### Pattern 5.23: Rate Limit Headers
-**Status:** PASS (standardHeaders: true in rate limiters)
-
-### Pattern 5.24: Pagination on List Endpoints
-**Status:** PASS (sendPaginated used with proper envelope)
-
-### Pattern 5.25: Graceful Degradation for Optional Services
-**Status:** PASS (isEmailEnabled, isTeamworkEnabled checks)
-
-**Phase 5 Overall:** FAIL (4 pattern failures)
+**Phase 5 Overall:** FAIL
 
 ---
 
-## Detailed Findings
+## Detailed Findings with GPT Improvement Guidance
 
 ### CRITICAL Issues
 
-#### CRIT-001: Tailwind v3 Syntax (Deployment Blocker)
-**Pattern:** Check 4.2
-**File:** client/src/index.css:1-3
-**Description:** Uses deprecated Tailwind v3 syntax which may cause build failures.
-**Impact:** CSS may not compile correctly on Replit.
-**Fix:**
-```css
-/* OLD - Tailwind v3 */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+---
 
-/* NEW - Tailwind v4 */
-@import "tailwindcss";
+#### CRIT-001: Tailwind v3 Syntax Instead of v4
+
+**What's Wrong:**
+The file `client/src/index.css` uses Tailwind CSS v3 directive syntax (`@tailwind base; @tailwind components; @tailwind utilities;`) but the spec expects Tailwind v4 syntax which uses `@import "tailwindcss";`.
+
+**What's Missing:**
+The CSS file needs to use the correct import syntax for the Tailwind version specified in the project requirements.
+
+**The Fix:**
+Replace the three `@tailwind` directives with a single `@import "tailwindcss";` statement.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## CSS Framework Version Alignment Rule
+
+When specifying Tailwind CSS setup:
+1. Explicitly state the Tailwind version in package.json (v3.x or v4.x)
+2. Document the EXACT CSS import syntax required for that version:
+   - Tailwind v3: `@tailwind base; @tailwind components; @tailwind utilities;`
+   - Tailwind v4: `@import "tailwindcss";`
+3. Include a verification step: "Confirm CSS syntax matches installed Tailwind version"
+
+The code generation agent MUST cross-reference package.json version with CSS syntax.
 ```
 
-#### CRIT-002: Missing Route Path Slash (Runtime Error)
-**Pattern:** Check 3.1
-**File:** server/routes/organizations.routes.ts:186
-**Description:** Route path `'/current/members:userId'` missing slash before parameter.
-**Impact:** Route will not match requests, causing 404 errors.
-**Fix:**
-```typescript
-// OLD
-router.delete('/current/members:userId', ...
+---
 
-// NEW
-router.delete('/current/members/:userId', ...
+#### CRIT-002: Missing Slash Before Route Parameter (organizations.routes.ts:186)
+
+**What's Wrong:**
+The route path `'/current/members:userId'` is missing a `/` before the `:userId` parameter. Express requires parameters to be preceded by a slash to be recognized as dynamic segments.
+
+**What's Missing:**
+The slash character `/` between `members` and `:userId`.
+
+**The Fix:**
+Change `'/current/members:userId'` to `'/current/members/:userId'`
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Express Route Path Syntax Rules (CRITICAL)
+
+Every route parameter MUST be preceded by a forward slash:
+- CORRECT: `/users/:userId`
+- WRONG: `/users:userId`
+
+Before generating any route file, the agent MUST mentally validate each path:
+1. Does every `:paramName` have a `/` immediately before it?
+2. Does the path start with `/`?
+
+Include this self-check comment in the prompt:
+"After writing routes, scan for pattern `:[a-zA-Z]` NOT preceded by `/` - this is always an error."
 ```
 
-#### CRIT-003: Missing Route Path Slash (Runtime Error)
-**Pattern:** Check 3.1
-**File:** server/routes/organizations.routes.ts:233
-**Description:** Route path `'/current/members:userId/role'` missing slash before parameter.
-**Impact:** Route will not match requests.
-**Fix:**
-```typescript
-// OLD
-router.patch('/current/members:userId/role', ...
+---
 
-// NEW
-router.patch('/current/members/:userId/role', ...
+#### CRIT-003: Missing Slash Before Route Parameter (organizations.routes.ts:233)
+
+**What's Wrong:**
+Same issue as CRIT-002. The route path `'/current/members:userId/role'` is missing a `/` before `:userId`.
+
+**What's Missing:**
+The slash character `/` between `members` and `:userId`.
+
+**The Fix:**
+Change `'/current/members:userId/role'` to `'/current/members/:userId/role'`
+
+**GPT Prompt Improvement:**
+Same as CRIT-002. This repeat occurrence indicates the GPT needs a systematic validation rule, not just awareness.
+
+---
+
+#### CRIT-004: Missing Slash Before Route Parameter (sources.routes.ts:203)
+
+**What's Wrong:**
+The route path `'/projects:projectId/sources'` is missing a `/` before `:projectId`.
+
+**What's Missing:**
+The slash character `/` between `projects` and `:projectId`.
+
+**The Fix:**
+Change `'/projects:projectId/sources'` to `'/projects/:projectId/sources'`
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Route Path Validation Checklist
+
+Before finalizing any routes file, run this mental checklist:
+1. List all route paths in the file
+2. For each path, identify all `:paramName` segments
+3. Verify each has format `/:paramName` (slash + colon + name)
+4. Flag any instance of `/word:param` as ERROR
+
+Example validation:
+- `/projects/:projectId/sources` ✓ (/:projectId has slash)
+- `/projects:projectId/sources` ✗ (missing slash before :projectId)
 ```
 
-#### CRIT-004: Missing Route Path Slash (Runtime Error)
-**Pattern:** Check 3.1
-**File:** server/routes/sources.routes.ts:203
-**Description:** Route path `'/projects:projectId/sources'` missing slash before parameter.
-**Impact:** POST to create source will fail with 404.
-**Fix:**
-```typescript
-// OLD
-router.post('/projects:projectId/sources', ...
+---
 
-// NEW
-router.post('/projects/:projectId/sources', ...
+#### CRIT-005: Missing Leading Slash and Wrong Method/Path (sources.routes.ts:343)
+
+**What's Wrong:**
+Multiple issues with this route:
+1. Path `':sourceId/configuration'` is missing the leading `/`
+2. Uses `PUT` method but API Contract specifies `POST`
+3. Path says `/configuration` but API Contract says `/configure`
+
+**What's Missing:**
+- Leading slash on the path
+- Correct HTTP method (POST)
+- Correct path segment (/configure not /configuration)
+
+**The Fix:**
+Change `router.put(':sourceId/configuration', ...)` to `router.post('/:sourceId/configure', ...)`
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## API Contract Cross-Reference Rule (MANDATORY)
+
+For EVERY route implementation:
+1. Look up the endpoint in 04-API-CONTRACT.md
+2. Verify THREE things match exactly:
+   - HTTP method (GET/POST/PUT/PATCH/DELETE)
+   - Path structure (including exact segment names)
+   - Parameter names
+
+Example cross-reference:
+```
+API Contract says: POST /api/sources/:sourceId/configure
+Implementation must be: router.post('/:sourceId/configure', ...)
+
+NOT: router.put(':sourceId/configuration', ...) ← 3 errors!
 ```
 
-#### CRIT-005: Missing Leading Slash in Route (Runtime Error)
-**Pattern:** Check 3.1
-**File:** server/routes/sources.routes.ts:343
-**Description:** Route path `':sourceId/configuration'` missing leading slash.
-**Impact:** Route will not be mounted correctly.
-**Fix:**
-```typescript
-// OLD
-router.put(':sourceId/configuration', ...
-
-// NEW (also fix method and path per spec)
-router.post('/:sourceId/configure', ...
+Include explicit instruction: "Do not paraphrase paths. Use exact strings from API Contract."
 ```
 
-#### CRIT-006: Direct parseInt on URL Parameters
-**Pattern:** 5.5
-**File:** server/routes/organizations.routes.ts:192
-**Description:** Uses `parseInt(req.params.userId)` instead of `parseIntParam`.
-**Impact:** Invalid input causes NaN errors instead of proper validation.
-**Fix:**
-```typescript
-// OLD
-const memberId = parseInt(req.params.userId as string, 10);
-if (isNaN(memberId)) {
-  throw new BadRequestError('Invalid user ID');
-}
+---
 
-// NEW
-const memberId = parseIntParam(req.params.userId, 'userId');
+#### CRIT-006: Direct parseInt Instead of parseIntParam (organizations.routes.ts:192)
+
+**What's Wrong:**
+The code uses `parseInt(req.params.userId as string, 10)` with manual `isNaN()` checking instead of the project's standard `parseIntParam()` utility function.
+
+**What's Missing:**
+Consistent use of the established parameter parsing utility that provides standardized error handling.
+
+**The Fix:**
+Replace `parseInt(req.params.userId as string, 10)` and the isNaN check with `parseIntParam(req.params.userId, 'userId')`.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Utility Function Usage Rules
+
+When the codebase has established utility functions, ALWAYS use them:
+
+For URL parameter parsing:
+- NEVER use: `parseInt(req.params.id)`
+- ALWAYS use: `parseIntParam(req.params.id, 'id')`
+
+The Implementation Plan should list all utility functions that MUST be used:
+- parseIntParam() - for numeric URL params
+- parsePaginationParams() - for page/limit query params
+- sendSuccess(), sendCreated(), sendPaginated() - for responses
+
+Include instruction: "Search for existing utilities before writing inline parsing/validation code."
 ```
 
-#### CRIT-007: Direct parseInt on URL Parameters
-**Pattern:** 5.5
-**File:** server/routes/organizations.routes.ts:240
-**Description:** Same issue at line 240.
-**Impact:** Same as CRIT-006.
-**Fix:** Same as CRIT-006.
+---
+
+#### CRIT-007: Direct parseInt Instead of parseIntParam (organizations.routes.ts:240)
+
+**What's Wrong:**
+Same issue as CRIT-006, occurring at a different location in the same file.
+
+**What's Missing:**
+Same as CRIT-006.
+
+**The Fix:**
+Same as CRIT-006.
+
+**GPT Prompt Improvement:**
+The repetition in the same file indicates the GPT didn't apply the pattern consistently. Add to prompt:
+```
+"When using a utility function in a file, search the file for similar patterns that should also use it."
+```
+
+---
 
 #### CRIT-008: Missing API Endpoint - PATCH /api/auth/profile
-**Pattern:** Check 3.1
-**File:** server/routes/auth.routes.ts
-**Description:** Endpoint 7 from API Contract not implemented.
-**Impact:** Users cannot update their profile.
-**Fix:**
-```typescript
-router.patch('/profile', requireAuth, validateRequest(updateProfileSchema), async (req, res, next) => {
-  // Implement profile update logic
-});
+
+**What's Wrong:**
+Endpoint #7 from the API Contract (`PATCH /api/auth/profile`) is not implemented in auth.routes.ts. This endpoint allows users to update their profile (name, password).
+
+**What's Missing:**
+The entire route handler for profile updates, including:
+- Route definition: `router.patch('/profile', ...)`
+- Authentication middleware
+- Validation schema
+- Update logic for name and password changes
+
+**The Fix:**
+Implement the PATCH /profile endpoint in auth.routes.ts following the API Contract specification for request/response format.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Endpoint Coverage Verification (MANDATORY)
+
+Before completing any routes file:
+1. Count endpoints in API Contract for that resource
+2. Count implemented routes in the file
+3. List any discrepancy
+
+Auth endpoints checklist (from API Contract):
+- [ ] POST /register (#2)
+- [ ] POST /login (#3)
+- [ ] POST /refresh (#4)
+- [ ] POST /logout (#5)
+- [ ] GET /me (#6)
+- [ ] PATCH /profile (#7) ← COMMONLY MISSED
+- [ ] POST /forgot-password (#8)
+- [ ] GET /reset-password/:token (#9) ← COMMONLY MISSED
+- [ ] POST /reset-password (#10)
+
+Include explicit instruction: "Do not consider auth routes complete until all 9 auth endpoints are implemented."
 ```
 
+---
+
 #### CRIT-009: Missing API Endpoint - GET /api/auth/reset-password/:token
-**Pattern:** Check 3.1
-**File:** server/routes/auth.routes.ts
-**Description:** Endpoint 9 from API Contract not implemented. This validates the reset token before showing the reset form.
-**Impact:** Password reset flow incomplete - frontend cannot validate token.
-**Fix:**
-```typescript
-router.get('/reset-password/:token', async (req, res, next) => {
-  // Validate token and return { valid: boolean, email?: string }
-});
+
+**What's Wrong:**
+Endpoint #9 from the API Contract (`GET /api/auth/reset-password/:token`) is not implemented. This endpoint validates a password reset token and returns whether it's valid (and the associated email) before the user submits a new password.
+
+**What's Missing:**
+The route handler that:
+- Accepts the token as a URL parameter
+- Looks up the token in the database
+- Checks if it's expired
+- Returns `{ valid: boolean, email?: string }`
+
+**The Fix:**
+Implement the GET /reset-password/:token endpoint in auth.routes.ts.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Password Reset Flow - Two Endpoints Required
+
+Password reset requires TWO endpoints (commonly confused):
+
+1. GET /reset-password/:token - VALIDATES token before showing form
+   - Input: token in URL
+   - Output: { valid: boolean, email: string }
+   - Purpose: Frontend checks if token is valid before showing password form
+
+2. POST /reset-password - PROCESSES the reset
+   - Input: { token, newPassword }
+   - Output: { message: "Password updated" }
+   - Purpose: Actually changes the password
+
+Both endpoints are required. Do not implement only POST.
 ```
 
 ---
 
 ### HIGH Issues
 
-#### HIGH-001: OAuth Tokens Stored Unencrypted
-**Pattern:** 5.1 (TODO)
-**File:** server/routes/integrations.routes.ts:204-205
-**Description:** Teamwork OAuth tokens stored in plaintext with TODO comments.
-**Impact:** Security vulnerability - tokens exposed if database compromised.
-**Fix:**
-```typescript
-// Import encryption utility
-import { encrypt } from '../lib/encryption';
+---
 
-// Encrypt before storing
-encryptedAccessToken: encrypt(tokenData.access_token),
-encryptedRefreshToken: encrypt(tokenData.refresh_token),
+#### HIGH-001: OAuth Tokens Stored Unencrypted
+
+**What's Wrong:**
+In `integrations.routes.ts:204-205`, Teamwork OAuth tokens are stored directly in the database without encryption. The code has TODO comments indicating this was known but not implemented.
+
+**What's Missing:**
+- An encryption utility function (encrypt/decrypt using AES-256-GCM)
+- Calls to encrypt tokens before database storage
+- Calls to decrypt tokens when retrieved for API calls
+
+**The Fix:**
+Create `server/lib/encryption.ts` with encrypt/decrypt functions using the ENCRYPTION_KEY environment variable, then use these when storing/retrieving OAuth tokens.
+
+**GPT Prompt Improvement:**
+```
+Add to Architecture GPT (Agent 2) and Implementation Plan GPT (Agent 6):
+
+## Security-Critical Implementation Rule
+
+For sensitive data storage (OAuth tokens, API keys), the Implementation Plan MUST include:
+1. Explicit encryption requirement with algorithm (AES-256-GCM)
+2. Encryption utility function specification
+3. Environment variable for encryption key
+
+Do NOT generate code with "// TODO: Encrypt" comments. Either:
+- Implement encryption fully, OR
+- Throw an error if encryption key is not configured
+
+TODOs in security-critical code paths are not acceptable.
 ```
 
+---
+
 #### HIGH-002: Teamwork API Not Implemented
-**Pattern:** 5.1 (TODO)
-**File:** server/routes/integrations.routes.ts:272
-**Description:** Returns mock data instead of actual Teamwork API call.
-**Impact:** Teamwork integration non-functional.
+
+**What's Wrong:**
+The Teamwork Desk integration endpoint at `integrations.routes.ts:272` returns mock/placeholder data instead of making actual API calls to Teamwork's API.
+
+**What's Missing:**
+- HTTP client calls to Teamwork Desk API
+- Token refresh logic when access token expires
+- Proper error handling for API failures
+- Data transformation from Teamwork format to application format
+
+**The Fix:**
+Implement actual Teamwork API calls using the stored OAuth credentials, including token refresh handling.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Third-Party API Integration Rule
+
+When specifying API integrations:
+1. Document the actual API endpoints to call (not just OAuth flow)
+2. Specify request/response formats
+3. Include token refresh logic requirements
+4. Mark integration as "stub" or "full implementation" in scope
+
+If integration is stub/mock for MVP:
+- Document this explicitly in PRD
+- Return proper error: "Integration not yet implemented"
+- Do NOT return fake success data that misleads testing
+
+If integration is in scope:
+- Provide complete implementation including error handling
+```
+
+---
 
 #### HIGH-003: Email Not Sent for Password Reset
-**Pattern:** 5.1 (TODO)
-**File:** server/routes/auth.routes.ts:445
-**Description:** Password reset token generated but email not sent.
-**Impact:** Password reset flow non-functional without email.
 
-#### HIGH-004: Invite Token Not Handled
-**Pattern:** 5.1 (TODO)
-**File:** server/routes/auth.routes.ts:150
-**Description:** Invite token handling not implemented in registration.
-**Impact:** Team invitations non-functional.
+**What's Wrong:**
+In `auth.routes.ts:445`, a password reset token is generated and saved, but no email is actually sent to the user. There's a TODO comment instead of implementation.
+
+**What's Missing:**
+- Email service integration (SendGrid, Resend, etc.)
+- Email template for password reset
+- Actual send call with the reset link
+
+**The Fix:**
+Implement email sending using the configured email service, with graceful degradation if email is not configured (log token in development, return generic success in production).
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Optional Service Implementation Pattern
+
+For optional services (email, SMS, etc.):
+
+1. Check if service is configured: `if (config.isEmailEnabled)`
+2. If configured: Send the email/SMS
+3. If NOT configured in development: Log the token/code for testing
+4. If NOT configured in production:
+   - Still return success (don't leak configuration info)
+   - Log warning for ops team
+
+Example pattern:
+```typescript
+if (config.isEmailEnabled) {
+  await emailService.sendPasswordReset(email, token);
+} else if (config.isDevelopment) {
+  console.log(`[DEV] Reset token for ${email}: ${token}`);
+}
+// Always return success - don't reveal if email exists
+```
+
+Do NOT leave TODO comments. Implement the conditional pattern.
+```
+
+---
+
+#### HIGH-004: Invite Token Not Handled in Registration
+
+**What's Wrong:**
+In `auth.routes.ts:150`, when a user registers with an invite token, the code has a TODO instead of actual logic to join them to the existing organization.
+
+**What's Missing:**
+- Token validation (lookup, expiry check)
+- Organization assignment from invitation
+- Role assignment from invitation
+- Invitation consumption (mark as used)
+
+**The Fix:**
+Implement the invite token flow: validate token, get org/role from invitation, create user in that org with that role, mark invitation as consumed.
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Invitation Flow Implementation Requirements
+
+Registration with invite token requires:
+1. Validate token exists and not expired
+2. Get organization_id and role from invitation
+3. Create user in THAT organization (not new org)
+4. Assign role from invitation
+5. Mark invitation as consumed/used
+6. Delete or invalidate the invitation token
+
+The two registration paths:
+- WITHOUT invite: Create new organization + admin user
+- WITH invite: Join existing organization as invited role
+
+Both paths must be fully implemented. No TODOs.
+```
+
+---
 
 #### HIGH-005: Invite Email Not Sent
-**Pattern:** 5.1 (TODO)
-**File:** server/routes/organizations.routes.ts:169
-**Description:** Invitation created but email not sent.
-**Impact:** Team invitations non-functional without email.
+
+**What's Wrong:**
+In `organizations.routes.ts:169`, when an admin creates an invitation, the invitation record is saved but no email is sent to the invitee.
+
+**What's Missing:**
+- Email with invitation link
+- Invitation token in the email
+- Instructions for the invitee
+
+**The Fix:**
+Send invitation email using the email service, with link to `/accept-invite?token=xxx`.
+
+**GPT Prompt Improvement:**
+Same as HIGH-003. Apply the optional service pattern for email sending.
+
+---
 
 #### HIGH-006: HTTP Method Mismatch - Organizations Update
-**Pattern:** Check 3.1
-**File:** server/routes/organizations.routes.ts:81
-**Description:** Uses PUT but spec says PATCH for endpoint 12.
-**Impact:** API contract violation - clients may use wrong method.
-**Fix:** Change `router.put` to `router.patch`
+
+**What's Wrong:**
+In `organizations.routes.ts:81`, the route uses `router.put()` but the API Contract specifies `PATCH` for endpoint #12.
+
+**What's Missing:**
+Correct HTTP method alignment with the API Contract.
+
+**The Fix:**
+Change `router.put('/current', ...)` to `router.patch('/current', ...)`
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## HTTP Method Selection Rule
+
+PATCH vs PUT distinction:
+- PATCH: Partial update (only provided fields change) ← PREFERRED
+- PUT: Full replacement (all fields must be provided) ← RARELY USED
+
+The API Contract is the source of truth for HTTP methods.
+When implementing, copy the method exactly from the API Contract table.
+
+Do not assume "update = PUT". Check the spec.
+```
+
+---
 
 #### HIGH-007: HTTP Method Mismatch - Projects Update
-**Pattern:** Check 3.1
-**File:** server/routes/projects.routes.ts:249
-**Description:** Uses PUT but spec says PATCH for endpoint 19.
-**Impact:** API contract violation.
-**Fix:** Change `router.put` to `router.patch`
+
+**What's Wrong:**
+In `projects.routes.ts:249`, the route uses `router.put()` but the API Contract specifies `PATCH` for endpoint #19.
+
+**What's Missing:**
+Correct HTTP method.
+
+**The Fix:**
+Change `router.put('/:projectId', ...)` to `router.patch('/:projectId', ...)`
+
+**GPT Prompt Improvement:**
+Same as HIGH-006.
+
+---
 
 #### HIGH-008: HTTP Method and Path Mismatch - Source Configure
-**Pattern:** Check 3.1
-**File:** server/routes/sources.routes.ts:343
-**Description:** Uses PUT /configuration but spec says POST /configure for endpoint 25.
-**Impact:** Frontend won't find the endpoint.
-**Fix:** Change to `router.post('/:sourceId/configure', ...`
 
-#### HIGH-009: Missing AcceptInvitePage
-**Pattern:** 5.17
-**File:** client/src/pages/
-**Description:** No page to handle invitation acceptance flow.
-**Impact:** Users cannot accept team invitations.
+**What's Wrong:**
+In `sources.routes.ts:343`:
+- Uses `PUT` but API Contract says `POST`
+- Uses `/configuration` but API Contract says `/configure`
+
+**What's Missing:**
+Both correct method and correct path.
+
+**The Fix:**
+Change `router.put('/:sourceId/configuration', ...)` to `router.post('/:sourceId/configure', ...)`
+
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## Path Naming - Exact Match Required
+
+Route paths must EXACTLY match the API Contract. Common mistakes:
+- `/configuration` vs `/configure` ← These are DIFFERENT paths
+- `/list` vs `/` ← These are DIFFERENT paths
+
+Do not paraphrase or "improve" path names during implementation.
+Copy paths character-for-character from the API Contract.
+```
+
+---
+
+#### HIGH-009: Missing AcceptInvitePage Component
+
+**What's Wrong:**
+There is no `AcceptInvitePage.tsx` in the pages directory, but the invitation flow requires a page where invited users can accept and complete registration.
+
+**What's Missing:**
+- React page component for `/accept-invite` route
+- Token validation on page load
+- Registration form pre-filled with invitation data
+- Route definition in App.tsx
+
+**The Fix:**
+Create `client/src/pages/auth/AcceptInvitePage.tsx` with invitation acceptance UI, and add the route to App.tsx.
+
+**GPT Prompt Improvement:**
+```
+Add to UI Specification GPT (Agent 5):
+
+## Auth Flow Page Completeness Check
+
+Every auth-related API endpoint needs a corresponding UI page:
+
+| Endpoint | Required Page |
+|----------|--------------|
+| POST /auth/login | LoginPage ✓ |
+| POST /auth/register | RegisterPage ✓ |
+| POST /auth/forgot-password | ForgotPasswordPage ✓ |
+| POST /auth/reset-password | ResetPasswordPage ✓ |
+| POST /invitations/:token/accept | AcceptInvitePage ← OFTEN MISSED |
+
+Include AcceptInvitePage in UI spec with:
+- Route: /accept-invite or /invitations/:token
+- Token validation on mount
+- Pre-filled org name from invitation
+- Password setup form
+```
+
+---
 
 #### HIGH-010: Missing Vite watch.ignored Configuration
-**Pattern:** Check 2.2
-**File:** vite.config.ts
-**Description:** Missing ignored patterns for watch configuration.
-**Impact:** May cause performance issues on Replit.
-**Fix:**
+
+**What's Wrong:**
+The `vite.config.ts` file has `watch.usePolling: true` for Replit compatibility but is missing the `ignored` array to exclude node_modules, .git, and dist directories.
+
+**What's Missing:**
+The `ignored` property in the watch configuration.
+
+**The Fix:**
+Add `ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**']` to the watch config.
+
+**GPT Prompt Improvement:**
+```
+Add to QA & Deployment GPT (Agent 7):
+
+## Replit Vite Configuration Checklist
+
+Required vite.config.ts settings for Replit:
 ```typescript
-watch: {
-  usePolling: true,
-  interval: 1000,
-  ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
-},
+server: {
+  host: '0.0.0.0',        // ✓ Bind all interfaces
+  port: 5000,             // ✓ Replit's port
+  watch: {
+    usePolling: true,     // ✓ Required for Replit filesystem
+    interval: 1000,       // ✓ Reduce CPU usage
+    ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],  // ← REQUIRED
+  },
+}
+```
+
+All four watch settings are required. Missing `ignored` causes performance issues.
 ```
 
 ---
 
 ### MEDIUM Issues
 
-#### MED-001: Inconsistent Pagination Metadata
-**Pattern:** 5.7
-**File:** server/lib/response.ts
-**Description:** Response uses `pagination` key instead of `meta` for pagination metadata.
-**Impact:** Minor inconsistency with Constitution Section C.
+---
 
-#### MED-002: Missing UI Pages
-**Pattern:** Check 3.3
-**File:** client/src/pages/
-**Description:** Only 9 of 19 specified pages implemented.
-**Impact:** Incomplete feature coverage.
+#### MED-001: Inconsistent Pagination Metadata Key
+
+**What's Wrong:**
+The response helper uses `pagination` as the key for pagination metadata, but the Constitution/Architecture may specify `meta` as the standard key.
+
+**What's Missing:**
+Consistency with the documented response envelope format.
+
+**The Fix:**
+Either update the response helper to use `meta`, or document that `pagination` is the project's chosen key.
+
+**GPT Prompt Improvement:**
+```
+Add to Architecture GPT (Agent 2):
+
+## Response Envelope Specification
+
+Explicitly define the response envelope structure:
+```typescript
+{
+  success: true,
+  data: { ... },
+  meta: {           // or "pagination" - pick ONE and document it
+    page: 1,
+    pageSize: 20,
+    total: 100,
+    totalPages: 5
+  }
+}
+```
+
+The chosen key name must be used consistently across:
+- API Contract examples
+- Response helper implementation
+- Frontend API client expectations
+```
 
 ---
 
-## STOP - HUMAN REVIEW REQUIRED
+#### MED-002: Only 9 of 19 UI Pages Implemented
 
-This audit report is complete. DO NOT PROCEED WITH FIXES until:
+**What's Wrong:**
+The UI Specification lists 19 pages, but only 9 are implemented:
+- ✓ LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage
+- ✓ DashboardPage, ProjectListPage, ProjectCreatePage, ProjectDetailPage
+- ✓ NotFoundPage
+- ✗ AcceptInvitePage, ProfileSettingsPage, TeamManagementPage
+- ✗ SourceUploadPage, SourceMappingPage, ProcessingDashboardPage
+- ✗ DatasetDownloadPage, and others
 
-1. Human reviews this report
-2. Human approves fixes
-3. Human initiates Claude Code for implementation
+**What's Missing:**
+10 page components and their corresponding routes.
 
-### Next Steps:
+**The Fix:**
+Implement remaining pages per UI Specification, prioritizing core user flows.
 
-1. Review all CRITICAL and HIGH findings
-2. Verify fix snippets are correct
-3. Approve fixes for implementation
-4. Run Claude Code to implement approved fixes
-5. Re-run this audit after fixes applied
+**GPT Prompt Improvement:**
+```
+Add to Implementation Plan GPT (Agent 6):
+
+## UI Page Implementation Tracking
+
+Include explicit page checklist with implementation order:
+
+Phase 1 - Auth (MUST HAVE):
+- [ ] LoginPage
+- [ ] RegisterPage
+- [ ] ForgotPasswordPage
+- [ ] ResetPasswordPage
+- [ ] AcceptInvitePage
+
+Phase 2 - Core Flow (MUST HAVE):
+- [ ] DashboardPage
+- [ ] ProjectListPage
+- [ ] ProjectCreatePage
+- [ ] ProjectDetailPage
+
+Phase 3 - Features (MUST HAVE for MVP):
+- [ ] SourceUploadPage (or integrated)
+- [ ] SourceMappingPage
+- [ ] ProcessingDashboardPage
+- [ ] DatasetDownloadPage
+
+Phase 4 - Settings (SHOULD HAVE):
+- [ ] ProfileSettingsPage
+- [ ] TeamManagementPage
+
+Mark each as implemented. Do not consider UI "done" until all Phase 1-3 pages exist.
+```
 
 ---
 
 ## Fix Implementation Summary
 
-| Category | Count |
-|----------|-------|
-| CRITICAL | 9 |
-| HIGH | 10 |
-| MEDIUM | 2 |
-| LOW | 0 |
-| **TOTAL** | **21** |
-
-**Priority Order:**
-1. Fix route path issues (CRIT-002 through CRIT-005) - immediate runtime failures
-2. Fix Tailwind syntax (CRIT-001) - deployment blocker
-3. Implement missing endpoints (CRIT-008, CRIT-009)
-4. Fix parseInt usage (CRIT-006, CRIT-007)
-5. Address HIGH issues in priority order
+| Priority | Issues | Action Required |
+|----------|--------|-----------------|
+| P0 | CRIT-002,003,004,005 | Fix route path syntax (immediate runtime failures) |
+| P1 | CRIT-006,007 | Use parseIntParam utility |
+| P1 | CRIT-008,009 | Implement missing auth endpoints |
+| P2 | HIGH-006,007,008 | Fix HTTP methods to match spec |
+| P2 | HIGH-001 | Implement token encryption |
+| P3 | HIGH-003,004,005 | Implement email functionality |
+| P3 | HIGH-009 | Create AcceptInvitePage |
+| P4 | HIGH-002,010, MED-* | Address remaining issues |
 
 ---
 
-## Re-Audit Protocol
+## GPT Improvement Summary
 
-After fixes implemented, re-run this agent:
+### Changes Needed by Agent
 
-```bash
-# Re-audit command
-claude-code audit --recheck
-```
+| Agent | Key Improvements Needed |
+|-------|------------------------|
+| **Agent 2 (Architecture)** | Add encryption requirements, response envelope spec |
+| **Agent 4 (API Contract)** | Already good - issues are in implementation, not spec |
+| **Agent 5 (UI Spec)** | Add AcceptInvitePage, page completeness checklist |
+| **Agent 6 (Implementation Plan)** | Route syntax rules, endpoint coverage verification, utility usage rules, HTTP method verification |
+| **Agent 7 (QA/Deployment)** | Complete Vite config checklist |
 
-**Focus Areas for Re-Audit:**
-- server/routes/organizations.routes.ts (4 issues)
-- server/routes/sources.routes.ts (2 issues)
-- server/routes/auth.routes.ts (2 missing endpoints)
-- server/routes/integrations.routes.ts (2 TODOs)
-- client/src/index.css (Tailwind syntax)
-- vite.config.ts (watch.ignored)
+### Top 5 Prompt Additions (Highest Impact)
 
----
-
-## Document Validation
-
-### Completeness Checklist
-
-- [x] All 7 specs validated
-- [x] All Phase 2 checks completed
-- [x] All Phase 3 checks completed
-- [x] All Phase 4 checks completed
-- [x] All 25 patterns checked
-- [x] All findings have severity
-- [x] All findings have fix snippets
-- [x] Executive summary accurate
-
-### Prompt Hygiene Gate (Constitution Section L)
-
-- [x] Framework Version header present
-- [x] Encoding scan: No non-ASCII artifacts
-- [x] Inheritance references Constitution v3.1
-- [x] No full global rule restatements
-
-**Audit Status:** COMPLETE
+1. **Route Path Syntax Validation** - Prevent 4 CRITICAL issues
+2. **API Contract Cross-Reference Rule** - Prevent method/path mismatches
+3. **Endpoint Coverage Checklist** - Prevent missing endpoints
+4. **Utility Function Usage Rules** - Ensure consistency
+5. **Optional Service Implementation Pattern** - Prevent TODO comments
 
 ---
 
@@ -591,36 +858,45 @@ claude-code audit --recheck
 
 ### AR-001: Tailwind Version
 - **Type:** ASSUMPTION
-- **Source Gap:** Package.json shows tailwindcss@^3.4.17, but spec may expect v4
-- **Assumption Made:** CSS syntax should match installed version
-- **Impact if Wrong:** If Tailwind v3 is intentional, the syntax is correct
-- **Proposed Resolution:** Verify intended Tailwind version with human
+- **Assumption:** Spec expects Tailwind v4 syntax
+- **Impact if Wrong:** If v3 is intentional, CRIT-001 is invalid
+- **Resolution:** Verify intended Tailwind version
 - **Status:** UNRESOLVED
 - **Owner:** Human
-- **Date:** 2026-01-20
 
-### AR-002: Mock Data in Integrations
+### AR-002: Teamwork Integration Scope
 - **Type:** RISK
-- **Source Gap:** Teamwork API returns mock data per TODO
-- **Assumption Made:** This is incomplete implementation, not intentional mock
-- **Impact if Wrong:** If mock is intentional for MVP, this finding is overstated
-- **Proposed Resolution:** Confirm Teamwork integration scope with human
+- **Assumption:** Teamwork API should be fully implemented, not mock
+- **Impact if Wrong:** If mock is intentional for MVP, HIGH-002 is overstated
+- **Resolution:** Confirm Teamwork integration scope
 - **Status:** UNRESOLVED
 - **Owner:** Human
-- **Date:** 2026-01-20
 
-### AR-003: Email Service Optional
+### AR-003: Email Service Scope
 - **Type:** ASSUMPTION
-- **Source Gap:** TODOs reference email sending but env vars show optional
-- **Assumption Made:** Email functionality should work when configured
-- **Impact if Wrong:** Email may be intentionally post-MVP scope
-- **Proposed Resolution:** Confirm email requirements with human
+- **Assumption:** Email should work when configured
+- **Impact if Wrong:** If email is post-MVP, HIGH-003/004/005 are overstated
+- **Resolution:** Confirm email requirements
 - **Status:** UNRESOLVED
 - **Owner:** Human
-- **Date:** 2026-01-20
+
+---
+
+## Document Validation
+
+- [x] All 7 specs validated
+- [x] All Phase 2-5 checks completed
+- [x] All 25 patterns checked
+- [x] All 21 findings documented with:
+  - [x] What's wrong
+  - [x] What's missing / the fix
+  - [x] GPT prompt improvement guidance
+- [x] Executive summary accurate
+
+**Audit Status:** COMPLETE
 
 ---
 
 **Document Status: COMPLETE**
 
-The audit identified 9 CRITICAL and 10 HIGH issues requiring fixes before deployment. Primary concerns are malformed route paths causing 404 errors and missing API endpoints breaking frontend functionality.
+The audit identified 21 issues with root cause analysis and GPT prompt improvement recommendations for each. Primary patterns to address in GPT prompts: route path syntax validation, API Contract cross-referencing, and endpoint coverage verification.
